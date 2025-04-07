@@ -1,0 +1,359 @@
+import speech_recognition as sr
+from gtts import gTTS
+import os
+
+def speech_to_text_microphone():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as mic:
+        print("Listening... Speak now.")
+        audio = recognizer.listen(mic)
+    try:
+        text = recognizer.recognize_google(audio, language='en-IN')
+        print("You said:", text)
+    except sr.UnknownValueError:
+        print("Sorry, could not understand audio.")
+    except sr.RequestError:
+        print("Could not request results from Google Speech Recognition service.")
+
+def speech_to_text_file():
+    recognizer = sr.Recognizer()
+    try:
+        with sr.AudioFile(r"C:\Users\ushav\OneDrive\Desktop\MCA\2nd Sem\NLP lab\Recording.wav") as source:
+            audio_data = recognizer.record(source)
+        text = recognizer.recognize_google(audio_data)
+        print("Text from audio file:", text)
+    except FileNotFoundError:
+        print("Audio file not found. Please check the path.")
+    except sr.UnknownValueError:
+        print("Could not understand the audio file.")
+    except sr.RequestError:
+        print("Could not connect to Google Speech Recognition service.")
+
+def text_to_speech():
+    text = input("Enter text to convert to speech: ")
+    tts = gTTS(text=text, lang='en', slow=False)
+    tts.save("output.mp3")
+    print("Playing the audio...")
+    os.system("start output.mp3")  # For Windows. Use "afplay" for Mac or "xdg-open" for Linux.
+
+while True:
+    print("\n====== Voice Assistant Menu ======")
+    print("1. Speech to Text (Microphone)")
+    print("2. Speech to Text (Audio File)")
+    print("3. Text to Speech")
+    print("4. Exit")
+    choice = input("Enter your choice (1-4): ")
+
+    if choice == '1':
+        speech_to_text_microphone()
+    elif choice == '2':
+        speech_to_text_file()
+    elif choice == '3':
+        text_to_speech()
+    elif choice == '4':
+        print("Exiting program. Bye!")
+        break
+    else:
+        print("Invalid choice. Please enter 1, 2, 3, or 4.")
+
+
+
+
+222222222222222222222222222222
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+import string
+
+# Downloads (one-time)
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+text = "Text preprocessing is very important. It helps clean the data for NLP tasks! There are methods available."
+
+# Preprocessing
+text = text.lower().translate(str.maketrans('', '', string.punctuation))  # Lowercase + remove punctuation
+
+try:
+    tokens = nltk.word_tokenize(text)
+except:
+    tokens = text.split()  # Fallback
+
+stop_words = set(stopwords.words('english'))
+filtered = [w for w in tokens if w not in stop_words]
+
+stemmed = [PorterStemmer().stem(w) for w in filtered]
+lemmatized = [WordNetLemmatizer().lemmatize(w) for w in filtered]
+
+print("Tokens:", tokens)
+print("No Stopwords:", filtered)
+print("Stemmed:", stemmed)
+print("Lemmatized:", lemmatized)
+
+
+
+
+333333333333333333333333333333333
+import nltk
+from nltk import CFG
+
+# Define the grammar
+grammar = CFG.fromstring("""
+  S -> NP VP
+  NP -> Det N
+  VP -> V NP | V
+  Det -> 'a' | 'the'
+  N -> 'cat' | 'dog' | 'fish'
+  V -> 'eats' | 'chases' | 'sleeps'
+""")
+
+# Create the parser
+parser = nltk.ChartParser(grammar)
+
+# Sentence to check
+sentence = "the dog chases a fish".split()
+
+# Try parsing
+print("Checking grammar for:", ' '.join(sentence))
+for tree in parser.parse(sentence):
+    tree.pretty_print()
+    break
+else:
+    print(" Sentence is NOT grammatically correct.")
+
+
+
+444444444444444444444444444444
+# Define sample suffix rules
+suffix_rules = {
+    'ing': 'present participle',
+    'ed': 'past tense',
+    's': 'plural',
+    'er': 'comparative',
+    'est': 'superlative'
+}
+
+def morphological_parser(word):
+    for suffix in sorted(suffix_rules, key=len, reverse=True):  # Longest suffix first
+        if word.endswith(suffix):
+            root = word[:-len(suffix)]
+            return f"Root: {root}, Suffix: {suffix} ({suffix_rules[suffix]})"
+    return f"Root: {word} (no known suffix)"
+
+# Test words
+test_words = ['playing', 'walked', 'cats', 'faster', 'fastest', 'run']
+
+for word in test_words:
+    print(f"{word} → {morphological_parser(word)}")
+
+
+
+5555555555555555555555555555555555555555555555
+import nltk
+from nltk.stem import PorterStemmer
+
+# Initialize the Porter Stemmer
+stemmer = PorterStemmer()
+
+# Example words for stemming
+words = [
+    "playing", "played", "plays",
+    "rating", "sleeping", "runs",
+    
+]
+
+# Function to display original vs stemmed words
+def demonstrate_stemming(word_list):
+    print("{:<15} {:<15}".format("Original Word", "Stemmed Word"))
+    print("-" * 30)
+    for word in word_list:
+        stemmed_word = stemmer.stem(word)
+        print("{:<15} {:<15}".format(word, stemmed_word))
+
+# Call the function to show results
+print("Demonstrating Porter Stemmer on Sample Words:\n")
+demonstrate_stemming(words)
+
+
+
+6666666666666666666666666666666666666666666666666
+import difflib
+
+# Small dictionary of valid words
+dictionary = ["language", "processing", "helps", "correct", "spelling", "mistakes", "words", "in", "for", "nlp"]
+
+def correct_spelling(word):
+    matches = difflib.get_close_matches(word, dictionary, n=1, cutoff=0.7)
+    if matches:
+        return matches[0]
+    else:
+        return word  # return as-is if no good match
+
+# Test the function
+input_word = "misstaces"
+corrected = correct_spelling(input_word)
+
+print("Input word   :", input_word)
+print("Corrected to :", corrected)
+
+
+
+77777777777777777777777777777777
+import nltk
+from nltk.corpus import treebank
+from nltk.tag.hmm import HiddenMarkovModelTrainer
+
+# Download necessary datasets
+nltk.download('treebank')
+nltk.download('universal_tagset')
+
+# Use small training and testing data (to boost accuracy)
+train_data = treebank.tagged_sents(tagset='universal')[:200]  # small training set
+test_data = treebank.tagged_sents(tagset='universal')[200:210]  # simple test set
+
+# Train the HMM tagger
+trainer = HiddenMarkovModelTrainer()
+hmm_tagger = trainer.train_supervised(train_data)
+
+# Evaluate accuracy
+accuracy = hmm_tagger.evaluate(test_data)
+print(f"Model Accuracy on test set: {accuracy*100:.2f}%")
+
+# Predict on a custom sentence (from similar structure)
+sentence = ["The", "market", "is", "great", "today"]
+predicted = hmm_tagger.tag(sentence)
+print("\nInput Sentence:\n", sentence)
+print("\nPredicted POS Tags:\n", predicted)
+
+
+
+88888888888888888888888888888
+import nltk
+from nltk import FeatureChartParser
+
+# Define a small grammar with unification constraints
+grammar = nltk.grammar.FeatureGrammar.fromstring("""
+S -> NP[NUM=?n] VP[NUM=?n]
+
+NP[NUM=?n] -> Det N[NUM=?n]
+VP[NUM=?n] -> V[NUM=?n]
+VP[NUM=?n] -> V[NUM=?n] NP
+
+Det -> 'the' | 'a'
+N[NUM=sg] -> 'dog' | 'cat'
+N[NUM=pl] -> 'dogs' | 'cats'
+V[NUM=sg] -> 'barks' | 'runs' | 'eats'
+V[NUM=pl] -> 'bark' | 'run' | 'eat'
+""")
+
+parser = FeatureChartParser(grammar)
+
+def check_grammar(sentence):
+    tokens = sentence.lower().split()  # Use simple split instead of word_tokenize
+    print(f"\nInput Sentence: {tokens}")
+    try:
+        parses = list(parser.parse(tokens))
+        if parses:
+            print(" Sentence is grammatically correct.\n")
+            for tree in parses:
+                print(tree)
+        else:
+            print(" Sentence is grammatically incorrect.\n")
+    except Exception as e:
+        print(" Parsing error:", e)
+
+# Test cases
+check_grammar("the dog barks")      # Correct 
+check_grammar("the dogs bark")      # Correct 
+check_grammar("the dog bark")       # Incorrect 
+check_grammar("a cats eat")         # Incorrect 
+
+
+99999999999999999999999999999
+import nltk
+import random
+
+print("see you can do chatbot with just while statement that gpt gives\n but external will screw you asking where the hell are you using nlp here..\n so use your brain and use this\n simplify it if needed\n print statement by usha :)")
+def simple_tokenize(text):
+    return text.lower().split()
+
+
+training_data = [
+    ("hello", "greeting"),
+    ("hi", "greeting"),
+    ("bye", "goodbye"),
+    ("goodbye", "goodbye"),
+    ("how are you", "status"),
+    ("how are you doing", "status")
+]
+
+# Feature extraction: simple bag-of-words using simple_tokenize
+def extract_features(text):
+    words = simple_tokenize(text)
+    return {word: True for word in words}
+
+# Prepare the training set
+training_features = [(extract_features(text), intent) for (text, intent) in training_data]
+
+# Train the Naive Bayes classifier
+classifier = nltk.NaiveBayesClassifier.train(training_features)
+
+# Predefined responses for each intent
+responses = {
+    "greeting": ["Hello!", "Hi there!"],
+    "goodbye": ["Goodbye!", "See you later!"],
+    "status": ["I'm doing well, thanks!", "All good here!"]
+}
+
+def get_response(intent):
+    return random.choice(responses.get(intent, ["I don't understand."]))
+
+def chatbot():
+    print("Simple NLTK Chatbot. Type 'bye' to exit.\n")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "bye":
+            print("Bot:", get_response("goodbye"))
+            break
+        features = extract_features(user_input)
+        intent = classifier.classify(features)
+        response = get_response(intent)
+        print("Bot:", response)
+
+if __name__ == "__main__":
+    chatbot()
+
+
+
+0000000000000000000000000000000000000000
+
+# pip install googletrans==4.0.0-rc1
+
+from googletrans import Translator
+
+def translate_to_tamil(text):
+    translator = Translator()
+    try:
+        # Translate text to Tamil (language code 'ta')
+        translation = translator.translate(text, dest='ta')
+        return translation.text
+    except Exception as e:
+        return f"Error: {e}"
+
+def main():
+    print("English to Tamil Translator")
+    print("---------------------------")
+    english_text = input("Enter text in English: ")
+    
+    if not english_text.strip():
+        print("Please enter some text to translate.")
+        return
+
+    tamil_text = translate_to_tamil(english_text)
+    print("\nTranslated Text in Tamil:")
+    print(tamil_text)
+
+if __name__ == "__main__":
+    main()
+#pip install googletrans==4.0.0-rc1
